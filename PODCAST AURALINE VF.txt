@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: transparent; }
+  * { box-sizing: border-box; }
+  .pc { font-family: 'Source Sans 3', Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 6px;
+        color: #F4F1EA; }
+
+  .pc-shell { background: linear-gradient(160deg,#1F3A5F,#16263d); border-radius: 16px; padding: 26px 26px 22px; box-shadow: 0 14px 40px rgba(16,28,46,0.25); }
+  .pc-kicker { font-size: 10px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #C9A26A; margin-bottom: 8px; }
+  .pc-title { font-family: 'Spectral', Georgia, serif; font-size: 25px; font-weight: 600; color: #FFFFFF; margin: 0 0 4px; line-height: 1.1; }
+  .pc-sub { font-size: 13px; color: rgba(244,241,234,0.66); margin: 0 0 20px; }
+
+  /* Now playing */
+  .pc-np { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .pc-cover { flex: none; width: 60px; height: 60px; border-radius: 12px; background: linear-gradient(135deg,#B08D57,#C9A26A); display: flex; align-items: center; justify-content: center; font-size: 28px; }
+  .pc-np-info { min-width: 0; flex: 1; }
+  .pc-np-t { font-family: 'Spectral', Georgia, serif; font-size: 17px; font-weight: 600; color: #fff; margin: 0 0 5px; line-height: 1.2; }
+  .pc-wave { display: flex; align-items: flex-end; gap: 3px; height: 18px; }
+  .pc-wave span { width: 3px; background: #C9A26A; border-radius: 2px; height: 5px; }
+  .pc-wave.on span { animation: pcw 0.9s ease-in-out infinite; }
+  .pc-wave span:nth-child(2){animation-delay:.1s}.pc-wave span:nth-child(3){animation-delay:.2s}.pc-wave span:nth-child(4){animation-delay:.3s}.pc-wave span:nth-child(5){animation-delay:.15s}.pc-wave span:nth-child(6){animation-delay:.25s}.pc-wave span:nth-child(7){animation-delay:.05s}
+  @keyframes pcw { 0%,100%{height:5px} 50%{height:18px} }
+  .pc-paused { font-size: 12px; color: rgba(244,241,234,0.5); }
+
+  .pc-ctrls { display: flex; align-items: center; gap: 12px; }
+  .pc-btn { flex: none; border: none; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: filter .2s, transform .1s; }
+  .pc-btn:active { transform: scale(0.94); }
+  .pc-play { width: 52px; height: 52px; background: linear-gradient(135deg,#B08D57,#C9A26A); color: #16263d; }
+  .pc-mini { width: 40px; height: 40px; background: rgba(255,255,255,0.08); color: #F4F1EA; }
+  .pc-mini:hover, .pc-play:hover { filter: brightness(1.08); }
+
+  /* Transcript */
+  .pc-tr-toggle { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16); color: #F4F1EA; font-family: 'Source Sans 3', Arial, sans-serif; font-size: 13px; font-weight: 600; padding: 9px 16px; border-radius: 99px; cursor: pointer; transition: background .2s, border-color .2s; }
+  .pc-tr-toggle:hover { border-color: #C9A26A; background: rgba(176,141,87,0.16); }
+  .pc-tr-toggle svg { width: 15px; height: 15px; flex: none; }
+  .pc-tr-label { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #C9A26A; margin: 16px 0 10px; }
+  .pc-tr { max-height: 230px; overflow-y: auto; padding-right: 6px; }
+  .pc-line { display: flex; gap: 11px; padding: 9px 10px; border-radius: 10px; margin-bottom: 4px; transition: background .25s; }
+  .pc-line.cur { background: rgba(176,141,87,0.16); }
+  .pc-av { flex: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+  .pc-av.q { background: rgba(201,162,106,0.25); color: #E6C892; }
+  .pc-av.a { background: rgba(255,255,255,0.1); color: #Bcd; color: #cdd9e6; }
+  .pc-line-b { min-width: 0; }
+  .pc-who { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; margin-bottom: 3px; }
+  .pc-who.q { color: #E6C892; } .pc-who.a { color: #AFC0D2; }
+  .pc-txt { display: block; font-size: 14px; line-height: 1.5; color: rgba(244,241,234,0.9); }
+
+  /* Curseur de lecture */
+  .pc-seek { display: flex; align-items: center; gap: 11px; margin-bottom: 4px; padding: 2px 2px 0; }
+  .pc-time { flex: none; font-size: 11.5px; color: rgba(244,241,234,0.6); font-variant-numeric: tabular-nums; min-width: 32px; text-align: center; }
+  .pc-bar { position: relative; flex: 1; height: 16px; cursor: pointer; display: flex; align-items: center; }
+  .pc-bar::before { content: ''; position: absolute; left: 0; right: 0; height: 5px; border-radius: 99px; background: rgba(255,255,255,0.14); }
+  .pc-bar-fill { position: absolute; left: 0; height: 5px; width: 0%; border-radius: 99px; background: linear-gradient(90deg,#B08D57,#C9A26A); }
+  .pc-bar-knob { position: absolute; left: 0%; width: 13px; height: 13px; border-radius: 50%; background: #F4F1EA; box-shadow: 0 1px 4px rgba(0,0,0,0.35); transform: translateX(-50%); transition: transform .1s; }
+  .pc-bar:hover .pc-bar-knob { transform: translateX(-50%) scale(1.15); }
+  .pc-skip { flex: none; width: 30px; height: 30px; border: none; cursor: pointer; border-radius: 50%; background: rgba(255,255,255,0.08); color: #F4F1EA; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+  .pc-skip:hover { background: rgba(176,141,87,0.3); }
+
+  /* Episodes */
+  .pc-eps-label { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #C9A26A; margin: 20px 0 10px; }
+  .pc-eps { display: grid; gap: 9px; }
+  .pc-ep { display: flex; align-items: center; gap: 13px; cursor: pointer; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 11px; padding: 12px 14px; transition: border-color .2s, background .2s; }
+  .pc-ep:hover { border-color: #B08D57; background: rgba(176,141,87,0.1); }
+  .pc-ep.on { border-color: #C9A26A; background: rgba(176,141,87,0.16); }
+  .pc-ep-emo { flex: none; font-size: 22px; }
+  .pc-ep-b { min-width: 0; flex: 1; }
+  .pc-ep-t { font-size: 14.5px; font-weight: 600; color: #fff; }
+  .pc-ep-d { font-size: 12px; color: rgba(244,241,234,0.55); margin-top: 1px; }
+  .pc-ep-n { flex: none; font-size: 11px; color: #C9A26A; font-weight: 600; }
+
+  .pc-note { font-size: 11px; color: rgba(244,241,234,0.45); margin-top: 16px; line-height: 1.5; text-align: center; }
+
+  @media (max-width: 480px) { .pc-title { font-size: 21px; } }
+</style>
+</head>
+<body>
+
+  <div class="pc">
+    <div class="pc-shell">
+      <div class="pc-kicker">Le podcast Auraline · Comprendre vos protections</div>
+      <h1 class="pc-title">Parlons assurance</h1>
+      <p class="pc-sub">Deux voix, des réponses claires. Choisissez un épisode et écoutez.</p>
+
+      <div class="pc-np">
+        <div class="pc-cover" id="pcCover">🎙️</div>
+        <div class="pc-np-info">
+          <div class="pc-np-t" id="pcNpTitle">Sélectionnez un épisode</div>
+          <div class="pc-wave" id="pcWave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="pc-ctrls">
+          <button class="pc-btn pc-mini" id="pcPrev" aria-label="Précédent">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14l-11-7z"/></svg>
+          </button>
+          <button class="pc-btn pc-play" id="pcPlay" aria-label="Lecture">
+            <svg id="pcPlayIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="pc-seek">
+        <button class="pc-skip" id="pcBack" aria-label="Reculer de 10 secondes">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 7L6 12l5 5"/><path d="M6 12h9a4 4 0 0 1 0 8h-1"/></svg>
+        </button>
+        <span class="pc-time" id="pcCur">0:00</span>
+        <div class="pc-bar" id="pcBar"><div class="pc-bar-fill" id="pcBarFill"></div><div class="pc-bar-knob" id="pcKnob"></div></div>
+        <span class="pc-time" id="pcDur">0:00</span>
+        <button class="pc-skip" id="pcFwd" aria-label="Avancer de 10 secondes">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7l5 5-5 5"/><path d="M18 12H9a4 4 0 0 0 0 8h1"/></svg>
+        </button>
+      </div>
+
+      <div class="pc-eps-label">Épisodes</div>
+      <div class="pc-eps" id="pcEps"></div>
+
+      <button class="pc-tr-toggle" id="pcTrToggle" aria-expanded="false" aria-controls="pcTrWrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        <span class="pc-tr-toggle-txt">Afficher la transcription</span>
+      </button>
+      <div id="pcTrWrap" hidden>
+        <div class="pc-tr-label">Transcription de l'épisode</div>
+        <div class="pc-tr" id="pcTr" role="region" aria-label="Transcription de l'épisode" tabindex="0"></div>
+      </div>
+
+      <div class="pc-note" id="pcNote">Astuce : pour des voix naturelles, ajoutez un fichier MP3 par épisode (champ « audio »). Sans MP3, la lecture utilise la voix du navigateur.</div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var EPISODES = [
+      { id:'protjur', emo:'⚖️', title:'La protection juridique, comment ça marche ?', desc:'Faire valoir vos droits', audio:'https://raw.githubusercontent.com/auralineassurancesc/auraline-podcast/main/ElevenLabs_Untitled_project%20(7).mp3',
+        lines:[
+          ['q','Marc, la protection juridique, on la retrouve dans beaucoup de contrats. À quoi sert-elle vraiment ?'],
+          ['a','Elle vous aide à faire valoir vos droits en cas de litige : un conflit avec un voisin, un artisan, un commerçant ou un employeur. Elle vous informe, vous conseille et prend en charge les frais de procédure.'],
+          ['q','Elle intervient donc avant même d\'aller au tribunal ?'],
+          ['a','Oui, et c\'est tout son intérêt. La plupart des litiges se règlent à l\'amiable. L\'assureur cherche d\'abord une solution négociée, ce qui évite bien souvent une procédure longue et coûteuse.'],
+          ['q','Qu\'est-ce qu\'elle prend en charge concrètement ?'],
+          ['a','Les honoraires d\'avocat, les frais d\'expertise et de justice, dans la limite des plafonds prévus au contrat. Et vous restez libre de choisir votre avocat.'],
+          ['q','Y a-t-il des pièges à connaître ?'],
+          ['a','Oui : les seuils d\'intervention, les délais de carence et les domaines exclus. Vérifiez aussi le plafond de prise en charge. Un courtier vous aide à comparer ces conditions souvent mal lues.'],
+          ['q','Ton conseil pour finir ?'],
+          ['a','Regardez si vous n\'êtes pas déjà couvert par un autre contrat, habitation ou carte bancaire, pour éviter les doublons. Sinon, une bonne protection juridique est un vrai filet de sécurité au quotidien.']
+        ] },
+      { id:'gav', emo:'🛡️', title:'La GAV, à quoi ça sert ?', desc:'Garantie Accidents de la Vie', audio:'https://raw.githubusercontent.com/auralineassurancesc/auraline-podcast/main/ElevenLabs_Untitled_project.mp3',
+        lines:[
+          ['q','Marc, on entend parler de la GAV, la garantie des accidents de la vie. Concrètement, ça couvre quoi ?'],
+          ['a','La GAV indemnise les accidents de la vie courante : une chute, une brûlure, un accident de bricolage ou de sport, par exemple. Tout ce qui n\'est ni un accident de voiture, ni un accident du travail.'],
+          ['q','Et pourquoi en a-t-on besoin si on a déjà la Sécurité sociale ?'],
+          ['a','Parce que la Sécurité sociale rembourse les soins, mais pas les conséquences durables. La GAV, elle, indemnise l\'invalidité, l\'aménagement du logement, la perte de revenus. C\'est là qu\'elle change tout.'],
+          ['q','À partir de quel niveau de gravité intervient-elle ?'],
+          ['a','Cela dépend du contrat : on parle d\'un seuil d\'invalidité, souvent autour de cinq à dix pour cent. Plus le seuil est bas, plus la couverture est protectrice. C\'est un point à vérifier de près.'],
+          ['q','Un dernier conseil pour bien la choisir ?'],
+          ['a','Regardez le seuil d\'intervention, le montant maximum d\'indemnisation, et si les proches sont couverts. Et surtout, faites-vous accompagner : un bon courtier compare pour vous.']
+        ] },
+      { id:'per', emo:'📈', title:'Le PER, comment ça marche ?', desc:'Plan d\'Épargne Retraite', audio:'https://raw.githubusercontent.com/auralineassurancesc/auraline-podcast/main/ElevenLabs_Untitled_project%20(1).mp3',
+        lines:[
+          ['q','Le Plan d\'Épargne Retraite, le fameux PER. En une phrase, c\'est quoi ?'],
+          ['a','C\'est une enveloppe pour se constituer un complément de retraite, en épargnant à son rythme pendant la vie active, avec un avantage fiscal à l\'entrée.'],
+          ['q','Justement, cet avantage fiscal, comment fonctionne-t-il ?'],
+          ['a','Les sommes versées sont, dans une certaine limite, déductibles de votre revenu imposable. Plus votre tranche d\'imposition est élevée, plus l\'économie d\'impôt est intéressante.'],
+          ['q','Et l\'argent est bloqué jusqu\'à la retraite ?'],
+          ['a','En principe oui, mais il existe des cas de déblocage anticipé : l\'achat de la résidence principale, ou des accidents de la vie comme l\'invalidité. C\'est donc moins rigide qu\'on ne le croit.'],
+          ['q','À qui s\'adresse-t-il en priorité ?'],
+          ['a','À ceux qui sont imposés et veulent préparer leur retraite, en particulier les travailleurs indépendants. Mais le bon montant de versement se calcule au cas par cas.']
+        ] },
+      { id:'epargne', emo:'💰', title:'Épargne et retraite : par où commencer ?', desc:'Construire dans la durée', audio:'https://raw.githubusercontent.com/auralineassurancesc/auraline-podcast/main/Podcast%20Auraline%20%E2%80%93%20epargne%20et%20retraite%20%20par%20o%C3%B9%20commencer.mp3',
+        lines:[
+          ['q','Marc, beaucoup de gens veulent épargner pour leurs vieux jours mais ne savent pas par où commencer.'],
+          ['a','La première règle, c\'est de commencer tôt, même avec de petites sommes. Le temps fait le plus gros du travail grâce aux intérêts qui se cumulent.'],
+          ['q','Faut-il tout mettre au même endroit ?'],
+          ['a','Surtout pas. On répartit : une épargne de précaution disponible, un placement de moyen terme, et une enveloppe long terme pour la retraite. C\'est l\'équilibre qui protège.'],
+          ['q','Comment savoir combien mettre de côté ?'],
+          ['a','On part de vos objectifs et de votre capacité d\'épargne réelle, sans se mettre en difficulté. Mieux vaut un montant régulier et tenable qu\'un gros effort abandonné au bout de six mois.'],
+          ['q','Le mot de la fin ?'],
+          ['a','Faites un bilan avec un conseiller. Une stratégie d\'épargne adaptée à votre situation vaut bien mieux qu\'un produit à la mode.']
+        ] }
+    ];
+
+    var voices = { f:null, m:null };
+    function pickVoices() {
+      var all = (window.speechSynthesis ? speechSynthesis.getVoices() : []).filter(function(v){ return /fr/i.test(v.lang); });
+      if (!all.length) return;
+      var fem = /(amelie|amélie|audrey|virginie|marie|julie|chantal|c\u00e9line|celine|female|femme|flora|l\u00e9a|lea)/i;
+      var masc = /(thomas|nicolas|daniel|paul|henri|male|homme|guillaume|mathieu|yannick|nasr)/i;
+      voices.f = all.filter(function(v){return fem.test(v.name);})[0] || null;
+      voices.m = all.filter(function(v){return masc.test(v.name);})[0] || null;
+      // fallback : deux voix distinctes
+      if (!voices.f) voices.f = all[0];
+      if (!voices.m) voices.m = all.filter(function(v){return v!==voices.f;})[0] || all[0];
+    }
+    if (window.speechSynthesis) {
+      pickVoices();
+      speechSynthesis.onvoiceschanged = pickVoices;
+    }
+
+    var epsEl = document.getElementById('pcEps');
+    var npTitle = document.getElementById('pcNpTitle');
+    var cover = document.getElementById('pcCover');
+    var wave = document.getElementById('pcWave');
+    var playIcon = document.getElementById('pcPlayIcon');
+    var bar = document.getElementById('pcBar');
+    var barFill = document.getElementById('pcBarFill');
+    var knob = document.getElementById('pcKnob');
+    var curEl = document.getElementById('pcCur');
+    var durEl = document.getElementById('pcDur');
+    var ICON_PLAY = '<path d="M8 5v14l11-7z"/>';
+    var ICON_PAUSE = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
+
+    var current = null;   // episode index
+    var lineIdx = 0;
+    var playing = false;
+    var audioEl = new Audio();
+    audioEl.addEventListener('ended', function(){ stop(); });
+    function hasAudio(){ return current !== null && EPISODES[current].audio && EPISODES[current].audio.trim(); }
+
+    // ---- Curseur de lecture (seek) ----
+    function fmt(s) {
+      if (!isFinite(s) || s < 0) s = 0;
+      var m = Math.floor(s / 60), x = Math.floor(s % 60);
+      return m + ':' + (x < 10 ? '0' + x : x);
+    }
+    function updateSeek() {
+      var d = audioEl.duration || 0;
+      var c = audioEl.currentTime || 0;
+      var pct = d ? (c / d) * 100 : 0;
+      barFill.style.width = pct + '%';
+      knob.style.left = pct + '%';
+      curEl.textContent = fmt(c);
+      durEl.textContent = fmt(d);
+    }
+    audioEl.addEventListener('loadedmetadata', updateSeek);
+    audioEl.addEventListener('timeupdate', updateSeek);
+    function seekFromEvent(ev) {
+      var rect = bar.getBoundingClientRect();
+      var x = (ev.touches ? ev.touches[0].clientX : ev.clientX) - rect.left;
+      var ratio = Math.max(0, Math.min(1, x / rect.width));
+      if (audioEl.duration) { audioEl.currentTime = ratio * audioEl.duration; updateSeek(); }
+    }
+    var dragging = false;
+    bar.addEventListener('mousedown', function (e) { dragging = true; seekFromEvent(e); });
+    document.addEventListener('mousemove', function (e) { if (dragging) seekFromEvent(e); });
+    document.addEventListener('mouseup', function () { dragging = false; });
+    bar.addEventListener('touchstart', function (e) { seekFromEvent(e); }, {passive:true});
+    bar.addEventListener('touchmove', function (e) { seekFromEvent(e); }, {passive:true});
+    document.getElementById('pcBack').addEventListener('click', function () { if (audioEl.duration) { audioEl.currentTime = Math.max(0, audioEl.currentTime - 10); updateSeek(); } });
+    document.getElementById('pcFwd').addEventListener('click', function () { if (audioEl.duration) { audioEl.currentTime = Math.min(audioEl.duration, audioEl.currentTime + 10); updateSeek(); } });
+
+    function renderEpisodes() {
+      epsEl.innerHTML = EPISODES.map(function (e, i) {
+        return '<div class="pc-ep" data-i="' + i + '">' +
+          '<span class="pc-ep-emo">' + e.emo + '</span>' +
+          '<span class="pc-ep-b"><span class="pc-ep-t">' + e.title + '</span><span class="pc-ep-d">' + e.desc + '</span></span>' +
+        '</div>';
+      }).join('');
+      [].forEach.call(epsEl.querySelectorAll('.pc-ep'), function (el) {
+        el.addEventListener('click', function () { selectEpisode(parseInt(el.getAttribute('data-i'),10), true); });
+      });
+    }
+
+    function renderTranscript() {
+      var trEl = document.getElementById('pcTr');
+      if (current === null) { trEl.innerHTML = ''; return; }
+      trEl.innerHTML = EPISODES[current].lines.map(function (l) {
+        var isQ = l[0] === 'q';
+        return '<div class="pc-line">' +
+          '<span class="pc-av ' + (isQ ? 'q' : 'a') + '" aria-hidden="true">' + (isQ ? 'Q' : 'R') + '</span>' +
+          '<span class="pc-line-b">' +
+            '<span class="pc-who ' + (isQ ? 'q' : 'a') + '">' + (isQ ? 'Question' : 'Réponse') + '</span>' +
+            '<span class="pc-txt">' + l[1] + '</span>' +
+          '</span></div>';
+      }).join('');
+    }
+    function highlight() {}
+
+    function selectEpisode(i, autoplay) {
+      stop();
+      current = i; lineIdx = 0;
+      [].forEach.call(epsEl.querySelectorAll('.pc-ep'), function (el, idx) { el.classList.toggle('on', idx === i); });
+      npTitle.textContent = EPISODES[i].title;
+      cover.textContent = EPISODES[i].emo;
+      renderTranscript();
+      if (hasAudio()) { audioEl.src = EPISODES[i].audio; }
+      barFill.style.width = '0%'; knob.style.left = '0%';
+      curEl.textContent = '0:00'; durEl.textContent = '0:00';
+      if (autoplay) play();
+    }
+
+    function speakLine() {
+      if (current === null) return;
+      var e = EPISODES[current];
+      if (lineIdx >= e.lines.length) { stop(); lineIdx = 0; return; }
+      var l = e.lines[lineIdx];
+      var u = new SpeechSynthesisUtterance(l[1]);
+      u.lang = 'fr-FR';
+      u.rate = 0.98; u.pitch = l[0] === 'q' ? 1.08 : 0.92;
+      var v = l[0] === 'q' ? voices.f : voices.m;
+      if (v) u.voice = v;
+      u.onend = function () {
+        if (!playing) return;
+        lineIdx++;
+        speakLine();
+      };
+      speechSynthesis.speak(u);
+    }
+
+    function play() {
+      if (current === null) { selectEpisode(0, false); }
+      playing = true;
+      wave.classList.add('on');
+      playIcon.innerHTML = ICON_PAUSE;
+      // 1) Vrai fichier audio (voix naturelle) si fourni
+      if (hasAudio()) {
+        if (audioEl.src !== EPISODES[current].audio) audioEl.src = EPISODES[current].audio;
+        audioEl.play().catch(function(){
+          document.getElementById('pcNote').textContent = 'Impossible de lire le fichier audio. Vérifiez l\'URL du MP3.';
+        });
+        return;
+      }
+      // 2) Sinon, synthèse vocale du navigateur
+      if (!window.speechSynthesis) { document.getElementById('pcNote').textContent = 'Votre navigateur ne supporte pas la lecture vocale.'; return; }
+      if (speechSynthesis.paused) { speechSynthesis.resume(); }
+      else { speakLine(); }
+    }
+
+    function pause() {
+      playing = false;
+      wave.classList.remove('on');
+      playIcon.innerHTML = ICON_PLAY;
+      if (hasAudio()) { try { audioEl.pause(); } catch (e) {} return; }
+      try { speechSynthesis.pause(); } catch (e) {}
+    }
+
+    function stop() {
+      playing = false;
+      wave.classList.remove('on');
+      playIcon.innerHTML = ICON_PLAY;
+      try { audioEl.pause(); audioEl.currentTime = 0; } catch (e) {}
+      try { speechSynthesis.cancel(); } catch (e) {}
+    }
+
+    document.getElementById('pcPlay').addEventListener('click', function () {
+      if (playing) pause(); else play();
+    });
+    document.getElementById('pcPrev').addEventListener('click', function () {
+      var i = current === null ? 0 : (current - 1 + EPISODES.length) % EPISODES.length;
+      selectEpisode(i, true);
+    });
+
+    // Transcription : bouton dépliable
+    (function () {
+      var toggle = document.getElementById('pcTrToggle');
+      var wrap = document.getElementById('pcTrWrap');
+      var txt = toggle.querySelector('.pc-tr-toggle-txt');
+      toggle.addEventListener('click', function () {
+        var willOpen = wrap.hasAttribute('hidden');
+        if (willOpen) { wrap.removeAttribute('hidden'); toggle.setAttribute('aria-expanded', 'true'); txt.textContent = 'Masquer la transcription'; }
+        else { wrap.setAttribute('hidden', ''); toggle.setAttribute('aria-expanded', 'false'); txt.textContent = 'Afficher la transcription'; }
+      });
+    })();
+
+    renderEpisodes();
+    selectEpisode(0, false);
+
+    // iOS/Safari : certaines voix n'arrivent qu'après une interaction
+    window.addEventListener('beforeunload', function(){ try{speechSynthesis.cancel();}catch(e){} try{audioEl.pause();}catch(e){} });
+  })();
+  </script>
+
+</body>
+</html>
